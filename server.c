@@ -2,6 +2,11 @@
 #define REQPATH 1
 #define FOUND "HTTP/1.0 200 OK\r\n\r\n"
 #define NOT_FOUND "HTTP/1.0 404 NOT FOUND\r\n\r\n"
+#define HTML "Content-Type: text/html\r\n\r\n"
+#define JPEG "Content-Type: video/JPEG\r\n\r\n"
+#define CSS "Content-Type: text/css\r\n\r\n"
+#define JAVASCRIPT "Content-Type: text/javascript\r\n\r\n"
+#define OTHER_TYPE "Content-Type: application/octet-stream\r\n\r\n"
 #define SPLITHEADERS 3
 
 #include <netdb.h>
@@ -16,7 +21,7 @@
 
 struct stat st;
 
-void read_input(int* protocolPos, int* portPos, int* pathPos, int argc, char** argv);
+void read_input(int *protocolPos, int *portPos, int *pathPos, int argc, char **argv);
 
 int main(int argc, char** argv) {
     int protocolPos, portPos, pathPos;
@@ -106,23 +111,41 @@ int main(int argc, char** argv) {
 		// Null-terminate string
 		buffer[n] = '\0';
 
-		char *token, *theRest;
+		//splits req header into 3 and stores them for use later
+		char *token, *theRest, *fileType;
 		char *headerSplit[SPLITHEADERS];
 		int headerParts = 0;
 		theRest = buffer;
-
 		while ((token = strtok_r(theRest, " ", &theRest)) && headerParts != 3) {
 			headerSplit[headerParts] = token;
 			headerParts++;
 		}
 
-		// Write message back
+		//stores path to requested file and gets file type
 		char *fileToOpen;
+		char *pathDupe = strdup(headerSplit[REQPATH]);
+		theRest = pathDupe;
 		fileToOpen = strcat(argv[pathPos], headerSplit[REQPATH]);
+		while ((token = strtok_r(theRest, ".", &theRest))) {
+			fileType = token;
+		}
 		struct stat st;
 		stat(fileToOpen, &st);
+
+		// Write message back
 		if (open(fileToOpen, O_RDONLY) != -1) {
 			n = write(newsockfd, FOUND, strlen(FOUND));
+			if (strcmp(fileType, "html") == 0)
+				n = write(newsockfd, HTML, strlen(HTML));
+			else if (strcmp(fileType, "jpg") == 0)
+				n = write(newsockfd, JPEG, strlen(JPEG));
+			else if (strcmp(fileType, "css") == 0)
+				n = write(newsockfd, CSS, strlen(CSS));
+			else if (strcmp(fileType, "js") == 0)
+				n = write(newsockfd, JAVASCRIPT, strlen(JAVASCRIPT));
+			else
+				n = write(newsockfd, OTHER_TYPE, strlen(OTHER_TYPE));
+
 			n = sendfile(newsockfd, open(fileToOpen, O_RDONLY), NULL, st.st_size);
 			if (n < 0) {
 				perror("write");
@@ -131,7 +154,7 @@ int main(int argc, char** argv) {
 		} else {
 			n = write(newsockfd, NOT_FOUND, strlen(NOT_FOUND));
 		}
-
+		free(pathDupe);
 		close(newsockfd);		
 	}
 	close(sockfd);
@@ -139,7 +162,7 @@ int main(int argc, char** argv) {
 }
 
 //reads input and stores index positions of the protocol number, port number and path
-void read_input(int* protocolPos, int* portPos, int* pathPos, int argc, char** argv) {
+void read_input(int *protocolPos, int *portPos, int *pathPos, int argc, char **argv) {
     int portFlag;
 
     for (int i = 0; i < argc; i++) {
