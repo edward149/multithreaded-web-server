@@ -4,4 +4,3 @@ server
 *.ext
 *.log
 *.json
-/www/*
