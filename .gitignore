@@ -1,0 +1,7 @@
+server
+*.o
+*.txt
+*.ext
+*.log
+*.json
+/www/*
