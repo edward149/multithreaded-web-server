@@ -86,53 +86,55 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	// Accept a connection - blocks until a connection is ready to be accepted
-	// Get back a new file descriptor to communicate on
-	client_addr_size = sizeof client_addr;
-	newsockfd =
-		accept(sockfd, (struct sockaddr*)&client_addr, &client_addr_size);
-	if (newsockfd < 0) {
-		perror("accept");
-		exit(EXIT_FAILURE);
-	}
-
-	// Read characters from the connection, then process
-	n = read(newsockfd, buffer, 255); // n is number of characters read
-	if (n < 0) {
-		perror("read");
-		exit(EXIT_FAILURE);
-	}
-	// Null-terminate string
-	buffer[n] = '\0';
-
-	char *token, *theRest;
-	char *headerSplit[SPLITHEADERS];
-	int headerParts = 0;
-	theRest = buffer;
-
-	while ((token = strtok_r(theRest, " ", &theRest)) && headerParts != 3) {
-		headerSplit[headerParts] = token;
-		headerParts++;
-	}
-
-	// Write message back
-	char *fileToOpen;
-	fileToOpen = strcat(argv[pathPos], headerSplit[REQPATH]);
-	struct stat st;
-	stat(fileToOpen, &st);
-	if (open(fileToOpen, O_RDONLY) != -1) {
-		n = write(newsockfd, FOUND, strlen(FOUND));
-		n = sendfile(newsockfd, open(fileToOpen, O_RDONLY), NULL, st.st_size);
-		if (n < 0) {
-			perror("write");
+	while (1) {
+		// Accept a connection - blocks until a connection is ready to be accepted
+		// Get back a new file descriptor to communicate on
+		client_addr_size = sizeof client_addr;
+		newsockfd =
+			accept(sockfd, (struct sockaddr*)&client_addr, &client_addr_size);
+		if (newsockfd < 0) {
+			perror("accept");
 			exit(EXIT_FAILURE);
 		}
-	} else {
-		n = write(newsockfd, NOT_FOUND, strlen(NOT_FOUND));
-	}
 
+		// Read characters from the connection, then process
+		n = read(newsockfd, buffer, 255); // n is number of characters read
+		if (n < 0) {
+			perror("read");
+			exit(EXIT_FAILURE);
+		}
+		// Null-terminate string
+		buffer[n] = '\0';
+
+		char *token, *theRest;
+		char *headerSplit[SPLITHEADERS];
+		int headerParts = 0;
+		theRest = buffer;
+
+		while ((token = strtok_r(theRest, " ", &theRest)) && headerParts != 3) {
+			headerSplit[headerParts] = token;
+			headerParts++;
+		}
+
+		// Write message back
+		char *fileToOpen;
+		fileToOpen = strcat(argv[pathPos], headerSplit[REQPATH]);
+		struct stat st;
+		stat(fileToOpen, &st);
+		if (open(fileToOpen, O_RDONLY) != -1) {
+			n = write(newsockfd, FOUND, strlen(FOUND));
+			n = sendfile(newsockfd, open(fileToOpen, O_RDONLY), NULL, st.st_size);
+			if (n < 0) {
+				perror("write");
+				exit(EXIT_FAILURE);
+			}
+		} else {
+			n = write(newsockfd, NOT_FOUND, strlen(NOT_FOUND));
+		}
+
+		close(newsockfd);		
+	}
 	close(sockfd);
-	close(newsockfd);
 	return 0;
 }
 
