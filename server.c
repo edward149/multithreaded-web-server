@@ -118,21 +118,13 @@ int main(int argc, char** argv) {
 	// Write message back
 	char *fileToOpen;
 	fileToOpen = strcat(argv[pathPos], headerSplit[REQPATH]);
-	printf("HOME: %s\n", getenv("HOME"));
-
-	printf("%s\n", fileToOpen);
-	if (open(fileToOpen, O_RDONLY) == -1) {
-		printf("file not found\n");
-	}
-
-	/*struct stat st;
+	struct stat st;
 	stat(fileToOpen, &st);
-	printf("file to open: %s\nsize of file: %lu\n", fileToOpen, st.st_size);
-	n = sendfile(newsockfd, open(fileToOpen, O_RDONLY), NULL, sizeof(open(fileToOpen, O_RDONLY)));
+	n = sendfile(newsockfd, open(fileToOpen, O_RDONLY), NULL, st.st_size);
 	if (n < 0) {
 		perror("write");
 		exit(EXIT_FAILURE);
-	}*/
+	}
 
 	close(sockfd);
 	close(newsockfd);
