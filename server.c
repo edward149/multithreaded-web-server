@@ -1,7 +1,7 @@
 #define _POSIX_C_SOURCE 200112L
-#define REQTYPE 0
 #define REQPATH 1
-#define REQHTTP 2
+#define FOUND "HTTP/1.0 200 OK\r\n\r\n"
+#define NOT_FOUND "HTTP/1.0 404 NOT FOUND\r\n\r\n"
 #define SPLITHEADERS 3
 
 #include <netdb.h>
@@ -120,10 +120,15 @@ int main(int argc, char** argv) {
 	fileToOpen = strcat(argv[pathPos], headerSplit[REQPATH]);
 	struct stat st;
 	stat(fileToOpen, &st);
-	n = sendfile(newsockfd, open(fileToOpen, O_RDONLY), NULL, st.st_size);
-	if (n < 0) {
-		perror("write");
-		exit(EXIT_FAILURE);
+	if (open(fileToOpen, O_RDONLY) != -1) {
+		n = write(newsockfd, FOUND, strlen(FOUND));
+		n = sendfile(newsockfd, open(fileToOpen, O_RDONLY), NULL, st.st_size);
+		if (n < 0) {
+			perror("write");
+			exit(EXIT_FAILURE);
+		}
+	} else {
+		n = write(newsockfd, NOT_FOUND, strlen(NOT_FOUND));
 	}
 
 	close(sockfd);
@@ -131,6 +136,7 @@ int main(int argc, char** argv) {
 	return 0;
 }
 
+//reads input and stores index positions of the protocol number, port number and path
 void read_input(int* protocolPos, int* portPos, int* pathPos, int argc, char** argv) {
     int portFlag;
 
