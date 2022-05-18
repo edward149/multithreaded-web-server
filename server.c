@@ -1,19 +1,26 @@
 #define _POSIX_C_SOURCE 200112L
 #define REQTYPE 0
 #define REQPATH 1
-#define REQPHTTP 2
+#define REQHTTP 2
 #define SPLITHEADERS 3
+
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <sys/sendfile.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+
+struct stat st;
 
 void read_input(int* protocolPos, int* portPos, int* pathPos, int argc, char** argv);
 
 int main(int argc, char** argv) {
     int protocolPos, portPos, pathPos;
+	protocolPos = portPos = pathPos = 0;
 
     read_input(&protocolPos, &portPos, &pathPos, argc, argv);
 
@@ -24,6 +31,11 @@ int main(int argc, char** argv) {
 	socklen_t client_addr_size;
 
 	if (argc < 4) {
+		fprintf(stderr, "ERROR, BAD INPUT\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if (strcmp(argv[protocolPos], "4") != 0) {
 		fprintf(stderr, "ERROR, BAD INPUT\n");
 		exit(EXIT_FAILURE);
 	}
@@ -53,6 +65,13 @@ int main(int argc, char** argv) {
 		perror("setsockopt");
 		exit(EXIT_FAILURE);
 	}
+
+	int enable = 1;
+	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
+	perror("setsockopt");
+	exit(1);
+	}
+
 	// Bind address to the socket
 	if (bind(sockfd, res->ai_addr, res->ai_addrlen) < 0) {
 		perror("bind");
@@ -85,7 +104,6 @@ int main(int argc, char** argv) {
 	}
 	// Null-terminate string
 	buffer[n] = '\0';
-	printf("Here is the message: %s\n", buffer);
 
 	char *token, *theRest;
 	char *headerSplit[SPLITHEADERS];
@@ -97,15 +115,24 @@ int main(int argc, char** argv) {
 		headerParts++;
 	}
 
-	if (strcmp(headerSplit[0], "GET1") || strcmp(headerSplit[0], "POST")) {
-		printf("%s returns 404\n", headerSplit[REQPATH]);
-	}
 	// Write message back
-	n = write(newsockfd, "I got your message", 18);
+	char *fileToOpen;
+	fileToOpen = strcat(argv[pathPos], headerSplit[REQPATH]);
+	printf("HOME: %s\n", getenv("HOME"));
+
+	printf("%s\n", fileToOpen);
+	if (open(fileToOpen, O_RDONLY) == -1) {
+		printf("file not found\n");
+	}
+
+	/*struct stat st;
+	stat(fileToOpen, &st);
+	printf("file to open: %s\nsize of file: %lu\n", fileToOpen, st.st_size);
+	n = sendfile(newsockfd, open(fileToOpen, O_RDONLY), NULL, sizeof(open(fileToOpen, O_RDONLY)));
 	if (n < 0) {
 		perror("write");
 		exit(EXIT_FAILURE);
-	}
+	}*/
 
 	close(sockfd);
 	close(newsockfd);
