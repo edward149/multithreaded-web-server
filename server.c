@@ -122,11 +122,13 @@ int main(int argc, char** argv) {
 		}
 
 		//stores path to requested file and gets file type
-		char *fileToOpen;
 		char *pathDupe = strdup(headerSplit[REQPATH]);
 		char *webRootFile = strdup(argv[pathPos]);
 		theRest = pathDupe;
-		fileToOpen = strcat(webRootFile, pathDupe);
+		char fileToOpen[strlen(pathDupe) + strlen(webRootFile) + 1];
+		strcpy(fileToOpen, webRootFile);
+		strcat(fileToOpen, pathDupe);
+		printf("%s\n", fileToOpen);
 		while ((token = strtok_r(theRest, ".", &theRest))) {
 			fileType = token;
 		}
