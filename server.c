@@ -122,14 +122,14 @@ int main(int argc, char** argv) {
 		}
 
 		//processes path
-		char *pathDupeEscape = strdup(headerSplit[REQPATH]);
 		char *pathDupeFiletype = strdup(headerSplit[REQPATH]);
 		char *webRoot = strdup(argv[pathPos]);
-		char fileToOpen[strlen(pathDupeEscape) + strlen(webRoot) + 1];
+		char fileToOpen[strlen(pathDupeFiletype) + strlen(webRoot) + 1];
 		strcpy(fileToOpen, webRoot);
-		strcat(fileToOpen, pathDupeEscape);
+		strcat(fileToOpen, pathDupeFiletype);
+		char *fileToOpenDupe = strdup(fileToOpen);
 		//checks for any escapes in path
-		theRest = pathDupeEscape;
+		theRest = fileToOpenDupe;
 		int escapeFlag = 0;
 		while ((token = strtok_r(theRest, "/", &theRest))) {
 			if (strcmp(token, "..") == 0) {
@@ -175,7 +175,7 @@ int main(int argc, char** argv) {
 		} else {
 			n = write(newsockfd, NOT_FOUND, strlen(NOT_FOUND));
 		}
-		free(pathDupeEscape);
+		free(fileToOpenDupe);
 		free(pathDupeFiletype);
 		free(webRoot);
 		close(newsockfd);		
