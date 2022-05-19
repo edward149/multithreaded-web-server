@@ -131,8 +131,6 @@ int main(int argc, char** argv) {
 		}
 		struct stat st;
 		stat(fileToOpen, &st);
-		printf("path to file: %s\n", fileToOpen);
-		printf("root path: %s\n", argv[pathPos]);
 
 		// Write message back
 		if (open(fileToOpen, O_RDONLY) != -1) {
@@ -158,6 +156,7 @@ int main(int argc, char** argv) {
 		} else {
 			n = write(newsockfd, NOT_FOUND, strlen(NOT_FOUND));
 		}
+		free(fileToOpen);
 		free(pathDupe);
 		close(newsockfd);		
 	}
