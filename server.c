@@ -103,7 +103,7 @@ int main(int argc, char** argv) {
 		}
 
 		// Read characters from the connection, then process
-		n = read(newsockfd, buffer, 255); // n is number of characters read
+		n = read(newsockfd, buffer, 2000); // n is number of characters read
 		if (n < 0) {
 			perror("read");
 			exit(EXIT_FAILURE);
@@ -128,7 +128,6 @@ int main(int argc, char** argv) {
 		char fileToOpen[strlen(pathDupe) + strlen(webRootFile) + 1];
 		strcpy(fileToOpen, webRootFile);
 		strcat(fileToOpen, pathDupe);
-		printf("%s\n", fileToOpen);
 		while ((token = strtok_r(theRest, ".", &theRest))) {
 			fileType = token;
 		}
@@ -156,11 +155,9 @@ int main(int argc, char** argv) {
 				}
 			} else {
 				n = write(newsockfd, NOT_FOUND, strlen(NOT_FOUND));
-				n = write(newsockfd, fileToOpen, strlen(fileToOpen+1));
 			}
 		} else {
 			n = write(newsockfd, NOT_FOUND, strlen(NOT_FOUND));
-			n = write(newsockfd, fileToOpen, strlen(fileToOpen+1));
 		}
 		free(pathDupe);
 		close(newsockfd);		
