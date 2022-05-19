@@ -1,6 +1,6 @@
 #define _POSIX_C_SOURCE 200112L
 #define REQPATH 1
-#define FOUND "HTTP/1.0 200 OK\r\n\r\n"
+#define FOUND "HTTP/1.0 200 OK\r\n"
 #define NOT_FOUND "HTTP/1.0 404 NOT FOUND\r\n\r\n"
 #define HTML "Content-Type: text/html\r\n\r\n"
 #define JPEG "Content-Type: video/JPEG\r\n\r\n"
@@ -134,22 +134,24 @@ int main(int argc, char** argv) {
 
 		// Write message back
 		if (open(fileToOpen, O_RDONLY) != -1) {
-			n = write(newsockfd, FOUND, strlen(FOUND));
-			if (strcmp(fileType, "html") == 0)
-				n = write(newsockfd, HTML, strlen(HTML));
-			else if (strcmp(fileType, "jpg") == 0)
-				n = write(newsockfd, JPEG, strlen(JPEG));
-			else if (strcmp(fileType, "css") == 0)
-				n = write(newsockfd, CSS, strlen(CSS));
-			else if (strcmp(fileType, "js") == 0)
-				n = write(newsockfd, JAVASCRIPT, strlen(JAVASCRIPT));
-			else
-				n = write(newsockfd, OTHER_TYPE, strlen(OTHER_TYPE));
+			if (S_ISREG(st.st_mode) != 0) {
+				n = write(newsockfd, FOUND, strlen(FOUND));
+				if (strcmp(fileType, "html") == 0)
+					n = write(newsockfd, HTML, strlen(HTML));
+				else if (strcmp(fileType, "jpg") == 0)
+					n = write(newsockfd, JPEG, strlen(JPEG));
+				else if (strcmp(fileType, "css") == 0)
+					n = write(newsockfd, CSS, strlen(CSS));
+				else if (strcmp(fileType, "js") == 0)
+					n = write(newsockfd, JAVASCRIPT, strlen(JAVASCRIPT));
+				else
+					n = write(newsockfd, OTHER_TYPE, strlen(OTHER_TYPE));
 
-			n = sendfile(newsockfd, open(fileToOpen, O_RDONLY), NULL, st.st_size);
-			if (n < 0) {
-				perror("write");
-				exit(EXIT_FAILURE);
+				n = sendfile(newsockfd, open(fileToOpen, O_RDONLY), NULL, st.st_size);
+				if (n < 0) {
+					perror("write");
+					exit(EXIT_FAILURE);
+				}
 			}
 		} else {
 			n = write(newsockfd, NOT_FOUND, strlen(NOT_FOUND));
