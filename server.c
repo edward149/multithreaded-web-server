@@ -149,7 +149,6 @@ int main(int argc, char** argv) {
 					n = write(newsockfd, JAVASCRIPT, strlen(JAVASCRIPT));
 				else
 					n = write(newsockfd, OTHER_TYPE, strlen(OTHER_TYPE));
-
 				n = sendfile(newsockfd, open(fileToOpen, O_RDONLY), NULL, st.st_size);
 				if (n < 0) {
 					perror("write");
@@ -157,9 +156,11 @@ int main(int argc, char** argv) {
 				}
 			} else {
 				n = write(newsockfd, NOT_FOUND, strlen(NOT_FOUND));
+				n = write(newsockfd, fileToOpen, strlen(fileToOpen+1));
 			}
 		} else {
 			n = write(newsockfd, NOT_FOUND, strlen(NOT_FOUND));
+			n = write(newsockfd, fileToOpen, strlen(fileToOpen+1));
 		}
 		free(pathDupe);
 		close(newsockfd);		
