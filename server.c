@@ -1,9 +1,9 @@
 #define _POSIX_C_SOURCE 200112L
 #define REQPATH 1
-#define FOUND "HTTP/1.0 200 OK\r\n\r\n"
+#define FOUND "HTTP/1.0 200 OK\r\n"
 #define NOT_FOUND "HTTP/1.0 404 NOT FOUND\r\n\r\n"
 #define HTML "Content-Type: text/html\r\n\r\n"
-#define JPEG "Content-Type: video/JPEG\r\n\r\n"
+#define JPEG "Content-Type: image/JPEG\r\n\r\n"
 #define CSS "Content-Type: text/css\r\n\r\n"
 #define JAVASCRIPT "Content-Type: text/javascript\r\n\r\n"
 #define OTHER_TYPE "Content-Type: application/octet-stream\r\n\r\n"
@@ -125,6 +125,7 @@ int main(int argc, char** argv) {
 		char *fileToOpen;
 		char *pathDupe = strdup(headerSplit[REQPATH]);
 		char *myFileToOpen = strdup(argv[pathPos]);
+		myFileToOpen = strcat(myFileToOpen, headerSplit[REQPATH]);
 		theRest = pathDupe;
 		fileToOpen = strcat(argv[pathPos], headerSplit[REQPATH]);
 		while ((token = strtok_r(theRest, ".", &theRest))) {
