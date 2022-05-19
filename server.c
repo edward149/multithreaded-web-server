@@ -1,9 +1,9 @@
 #define _POSIX_C_SOURCE 200112L
 #define REQPATH 1
-#define FOUND "HTTP/1.0 200 OK\r\n"
+#define FOUND "HTTP/1.0 200 OK\r\n\r\n"
 #define NOT_FOUND "HTTP/1.0 404 NOT FOUND\r\n\r\n"
 #define HTML "Content-Type: text/html\r\n\r\n"
-#define JPEG "Content-Type: image/jpeg\r\n\r\n"
+#define JPEG "Content-Type: video/JPEG\r\n\r\n"
 #define CSS "Content-Type: text/css\r\n\r\n"
 #define JAVASCRIPT "Content-Type: text/javascript\r\n\r\n"
 #define OTHER_TYPE "Content-Type: application/octet-stream\r\n\r\n"
@@ -112,54 +112,49 @@ int main(int argc, char** argv) {
 		buffer[n] = '\0';
 
 		//splits req header into 3 and stores them for use later
-		char *headerToken, *theRest, *fileType;
+		char *token, *theRest, *fileType;
 		char *headerSplit[SPLITHEADERS];
 		int headerParts = 0;
 		theRest = buffer;
-		while ((headerToken = strtok_r(theRest, " ", &theRest)) && headerParts != 3) {
-			headerSplit[headerParts] = headerToken;
+		while ((token = strtok_r(theRest, " ", &theRest)) && headerParts != 3) {
+			headerSplit[headerParts] = token;
 			headerParts++;
 		}
 
 		//stores path to requested file and gets file type
-		char *pathToken, *theOtherRest;
-		char *fileToOpen = strdup(argv[pathPos]);
+		char *fileToOpen;
 		char *pathDupe = strdup(headerSplit[REQPATH]);
-		theOtherRest = pathDupe;
-		fileToOpen = strcat(fileToOpen, pathDupe);
-		while ((pathToken = strtok_r(theOtherRest, ".", &theOtherRest))) {
-			fileType = pathToken;
+		char *myFileToOpen = strdup(argv[pathPos]);
+		theRest = pathDupe;
+		fileToOpen = strcat(argv[pathPos], headerSplit[REQPATH]);
+		while ((token = strtok_r(theRest, ".", &theRest))) {
+			fileType = token;
 		}
 		struct stat st;
 		stat(fileToOpen, &st);
 
-		// Checks whether path is valid, and is a file then writes message back
+		// Write message back
 		if (open(fileToOpen, O_RDONLY) != -1) {
-			if (S_ISREG(st.st_mode) != 0) {
-				n = write(newsockfd, FOUND, strlen(FOUND));
-				if (strcmp(fileType, "html") == 0)
-					n = write(newsockfd, HTML, strlen(HTML));
-				else if (strcmp(fileType, "jpg") == 0)
-					n = write(newsockfd, JPEG, strlen(JPEG));
-				else if (strcmp(fileType, "css") == 0)
-					n = write(newsockfd, CSS, strlen(CSS));
-				else if (strcmp(fileType, "js") == 0)
-					n = write(newsockfd, JAVASCRIPT, strlen(JAVASCRIPT));
-				else
-					n = write(newsockfd, OTHER_TYPE, strlen(OTHER_TYPE));
+			n = write(newsockfd, FOUND, strlen(FOUND));
+			if (strcmp(fileType, "html") == 0)
+				n = write(newsockfd, HTML, strlen(HTML));
+			else if (strcmp(fileType, "jpg") == 0)
+				n = write(newsockfd, JPEG, strlen(JPEG));
+			else if (strcmp(fileType, "css") == 0)
+				n = write(newsockfd, CSS, strlen(CSS));
+			else if (strcmp(fileType, "js") == 0)
+				n = write(newsockfd, JAVASCRIPT, strlen(JAVASCRIPT));
+			else
+				n = write(newsockfd, OTHER_TYPE, strlen(OTHER_TYPE));
 
-				n = sendfile(newsockfd, open(fileToOpen, O_RDONLY), NULL, st.st_size);
-				if (n < 0) {
-					perror("write");
-					exit(EXIT_FAILURE);
-				}
-			} else {
-				n = write(newsockfd, NOT_FOUND, strlen(NOT_FOUND));
+			n = sendfile(newsockfd, open(fileToOpen, O_RDONLY), NULL, st.st_size);
+			if (n < 0) {
+				perror("write");
+				exit(EXIT_FAILURE);
 			}
 		} else {
 			n = write(newsockfd, NOT_FOUND, strlen(NOT_FOUND));
 		}
-		free(fileToOpen);
 		free(pathDupe);
 		close(newsockfd);		
 	}
