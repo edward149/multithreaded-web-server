@@ -121,13 +121,23 @@ int main(int argc, char** argv) {
 			headerParts++;
 		}
 
-		//stores path to requested file and gets file type
-		char *pathDupe = strdup(headerSplit[REQPATH]);
-		char *webRootFile = strdup(argv[pathPos]);
-		theRest = pathDupe;
-		char fileToOpen[strlen(pathDupe) + strlen(webRootFile) + 1];
-		strcpy(fileToOpen, webRootFile);
-		strcat(fileToOpen, pathDupe);
+		//processes path
+		char *pathDupeEscape = strdup(headerSplit[REQPATH]);
+		char *pathDupeFiletype = strdup(headerSplit[REQPATH]);
+		char *webRoot = strdup(argv[pathPos]);
+		char fileToOpen[strlen(pathDupeEscape) + strlen(webRoot) + 1];
+		strcpy(fileToOpen, webRoot);
+		strcat(fileToOpen, pathDupeEscape);
+		//checks for any escapes in path
+		theRest = pathDupeEscape;
+		int escapeFlag = 0;
+		while ((token = strtok_r(theRest, "/", &theRest))) {
+			if (strcmp(token, "..") == 0) {
+				escapeFlag = 1;
+			}
+		}
+		//checks for file type of requested file
+		theRest = pathDupeFiletype;
 		while ((token = strtok_r(theRest, ".", &theRest))) {
 			fileType = token;
 		}
@@ -135,23 +145,29 @@ int main(int argc, char** argv) {
 		stat(fileToOpen, &st);
 
 		//Checks if file requested is a file, then write message back
-		if (S_ISREG(st.st_mode) != 0) {
-			if (open(fileToOpen, O_RDONLY) != -1) {
-				n = write(newsockfd, FOUND, strlen(FOUND));
-				if (strcmp(fileType, "html") == 0)
-					n = write(newsockfd, HTML, strlen(HTML));
-				else if (strcmp(fileType, "jpg") == 0)
-					n = write(newsockfd, JPEG, strlen(JPEG));
-				else if (strcmp(fileType, "css") == 0)
-					n = write(newsockfd, CSS, strlen(CSS));
-				else if (strcmp(fileType, "js") == 0)
-					n = write(newsockfd, JAVASCRIPT, strlen(JAVASCRIPT));
-				else
-					n = write(newsockfd, OTHER_TYPE, strlen(OTHER_TYPE));
-				n = sendfile(newsockfd, open(fileToOpen, O_RDONLY), NULL, st.st_size);
-				if (n < 0) {
-					perror("write");
-					exit(EXIT_FAILURE);
+		if (escapeFlag == 0) {
+			if (S_ISREG(st.st_mode) != 0) {
+				if (open(fileToOpen, O_RDONLY) != -1) {
+					n = write(newsockfd, FOUND, strlen(FOUND));
+					if (strcmp(fileType, "html") == 0)
+						n = write(newsockfd, HTML, strlen(HTML));
+					else if (strcmp(fileType, "jpg") == 0)
+						n = write(newsockfd, JPEG, strlen(JPEG));
+					else if (strcmp(fileType, "css") == 0)
+						n = write(newsockfd, CSS, strlen(CSS));
+					else if (strcmp(fileType, "js") == 0)
+						n = write(newsockfd, JAVASCRIPT, strlen(JAVASCRIPT));
+					else
+						n = write(newsockfd, OTHER_TYPE, strlen(OTHER_TYPE));
+					//i used write above as its simpler and takes less time to code lol
+					//i used sendfile here as it returns the amount of bytes sent when sending a response to the client
+					n = sendfile(newsockfd, open(fileToOpen, O_RDONLY), NULL, st.st_size);
+					if (n < 0) {
+						perror("write");
+						exit(EXIT_FAILURE);
+					}
+				} else {
+					n = write(newsockfd, NOT_FOUND, strlen(NOT_FOUND));
 				}
 			} else {
 				n = write(newsockfd, NOT_FOUND, strlen(NOT_FOUND));
@@ -159,7 +175,9 @@ int main(int argc, char** argv) {
 		} else {
 			n = write(newsockfd, NOT_FOUND, strlen(NOT_FOUND));
 		}
-		free(pathDupe);
+		free(pathDupeEscape);
+		free(pathDupeFiletype);
+		free(webRoot);
 		close(newsockfd);		
 	}
 	close(sockfd);
