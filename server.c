@@ -3,7 +3,7 @@
 #define FOUND "HTTP/1.0 200 OK\r\n"
 #define NOT_FOUND "HTTP/1.0 404 NOT FOUND\r\n\r\n"
 #define HTML "Content-Type: text/html\r\n\r\n"
-#define JPEG "Content-Type: video/JPEG\r\n\r\n"
+#define JPEG "Content-Type: image/jpeg\r\n\r\n"
 #define CSS "Content-Type: text/css\r\n\r\n"
 #define JAVASCRIPT "Content-Type: text/javascript\r\n\r\n"
 #define OTHER_TYPE "Content-Type: application/octet-stream\r\n\r\n"
@@ -122,15 +122,17 @@ int main(int argc, char** argv) {
 		}
 
 		//stores path to requested file and gets file type
-		char *fileToOpen;
+		char *fileToOpen = strdup(argv[pathPos]);
 		char *pathDupe = strdup(headerSplit[REQPATH]);
 		theRest = pathDupe;
-		fileToOpen = strcat(argv[pathPos], headerSplit[REQPATH]);
+		fileToOpen = strcat(fileToOpen, pathDupe);
 		while ((token = strtok_r(theRest, ".", &theRest))) {
 			fileType = token;
 		}
 		struct stat st;
 		stat(fileToOpen, &st);
+		printf("path to file: %s\n", fileToOpen);
+		printf("root path: %s\n", argv[pathPos]);
 
 		// Write message back
 		if (open(fileToOpen, O_RDONLY) != -1) {
