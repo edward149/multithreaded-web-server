@@ -122,34 +122,39 @@ int main(int argc, char** argv) {
 		}
 
 		//stores path to requested file and gets file type
+		char *theOtherRest;
 		char *fileToOpen = strdup(argv[pathPos]);
 		char *pathDupe = strdup(headerSplit[REQPATH]);
-		theRest = pathDupe;
+		theOtherRest = pathDupe;
 		fileToOpen = strcat(fileToOpen, pathDupe);
-		while ((token = strtok_r(theRest, ".", &theRest))) {
+		while ((token = strtok_r(theOtherRest, ".", &theOtherRest))) {
 			fileType = token;
 		}
 		struct stat st;
 		stat(fileToOpen, &st);
 
-		// Write message back
+		// Checks whether path is valid, and is a file then writes message back
 		if (open(fileToOpen, O_RDONLY) != -1) {
-			n = write(newsockfd, FOUND, strlen(FOUND));
-			if (strcmp(fileType, "html") == 0)
-				n = write(newsockfd, HTML, strlen(HTML));
-			else if (strcmp(fileType, "jpg") == 0)
-				n = write(newsockfd, JPEG, strlen(JPEG));
-			else if (strcmp(fileType, "css") == 0)
-				n = write(newsockfd, CSS, strlen(CSS));
-			else if (strcmp(fileType, "js") == 0)
-				n = write(newsockfd, JAVASCRIPT, strlen(JAVASCRIPT));
-			else
-				n = write(newsockfd, OTHER_TYPE, strlen(OTHER_TYPE));
+			if (S_ISREG(st.st_mode) != 0) {
+				n = write(newsockfd, FOUND, strlen(FOUND));
+				if (strcmp(fileType, "html") == 0)
+					n = write(newsockfd, HTML, strlen(HTML));
+				else if (strcmp(fileType, "jpg") == 0)
+					n = write(newsockfd, JPEG, strlen(JPEG));
+				else if (strcmp(fileType, "css") == 0)
+					n = write(newsockfd, CSS, strlen(CSS));
+				else if (strcmp(fileType, "js") == 0)
+					n = write(newsockfd, JAVASCRIPT, strlen(JAVASCRIPT));
+				else
+					n = write(newsockfd, OTHER_TYPE, strlen(OTHER_TYPE));
 
-			n = sendfile(newsockfd, open(fileToOpen, O_RDONLY), NULL, st.st_size);
-			if (n < 0) {
-				perror("write");
-				exit(EXIT_FAILURE);
+				n = sendfile(newsockfd, open(fileToOpen, O_RDONLY), NULL, st.st_size);
+				if (n < 0) {
+					perror("write");
+					exit(EXIT_FAILURE);
+				}
+			} else {
+				n = write(newsockfd, NOT_FOUND, strlen(NOT_FOUND));
 			}
 		} else {
 			n = write(newsockfd, NOT_FOUND, strlen(NOT_FOUND));
