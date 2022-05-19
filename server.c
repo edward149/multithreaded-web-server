@@ -112,23 +112,23 @@ int main(int argc, char** argv) {
 		buffer[n] = '\0';
 
 		//splits req header into 3 and stores them for use later
-		char *token, *theRest, *fileType;
+		char *headerToken, *theRest, *fileType;
 		char *headerSplit[SPLITHEADERS];
 		int headerParts = 0;
 		theRest = buffer;
-		while ((token = strtok_r(theRest, " ", &theRest)) && headerParts != 3) {
-			headerSplit[headerParts] = token;
+		while ((headerToken = strtok_r(theRest, " ", &theRest)) && headerParts != 3) {
+			headerSplit[headerParts] = headerToken;
 			headerParts++;
 		}
 
 		//stores path to requested file and gets file type
-		char *theOtherRest;
+		char *pathToken, *theOtherRest;
 		char *fileToOpen = strdup(argv[pathPos]);
 		char *pathDupe = strdup(headerSplit[REQPATH]);
 		theOtherRest = pathDupe;
 		fileToOpen = strcat(fileToOpen, pathDupe);
-		while ((token = strtok_r(theOtherRest, ".", &theOtherRest))) {
-			fileType = token;
+		while ((pathToken = strtok_r(theOtherRest, ".", &theOtherRest))) {
+			fileType = pathToken;
 		}
 		struct stat st;
 		stat(fileToOpen, &st);
