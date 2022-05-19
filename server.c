@@ -130,13 +130,12 @@ int main(int argc, char** argv) {
 		while ((token = strtok_r(theRest, ".", &theRest))) {
 			fileType = token;
 		}
-		printf("%s\n", fileToOpen);
 		struct stat st;
 		stat(fileToOpen, &st);
 
 		//Checks if file requested is a file, then write message back
-		if (open(fileToOpen, O_RDONLY) != -1) {
-			if (S_ISREG(st.st_mode) != 0) {
+		if (S_ISREG(st.st_mode) != 0) {
+			if (open(fileToOpen, O_RDONLY) != -1) {
 				n = write(newsockfd, FOUND, strlen(FOUND));
 				if (strcmp(fileType, "html") == 0)
 					n = write(newsockfd, HTML, strlen(HTML));
