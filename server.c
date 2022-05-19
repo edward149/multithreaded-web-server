@@ -1,7 +1,7 @@
 #define _POSIX_C_SOURCE 200112L
 #define REQPATH 1
 #define FOUND "HTTP/1.0 200 OK\r\n"
-#define NOT_FOUND "HTTP/1.0 404 NOT FOUND\r\n\r\n"
+#define NOT_FOUND "HTTP/1.0 404 NOT FOUND\r\n"
 #define HTML "Content-Type: text/html\r\n\r\n"
 #define JPEG "Content-Type: image/JPEG\r\n\r\n"
 #define CSS "Content-Type: text/css\r\n\r\n"
