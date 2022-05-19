@@ -30,12 +30,12 @@ int main(int argc, char** argv) {
     read_input(&protocolPos, &portPos, &pathPos, argc, argv);
 
 	int sockfd, newsockfd, n, re, s;
-	char buffer[256];
+	char buffer[2001];
 	struct addrinfo hints, *res;
 	struct sockaddr_storage client_addr;
 	socklen_t client_addr_size;
 
-	if (argc < 4) {
+	if (argc != 4) {
 		fprintf(stderr, "ERROR, BAD INPUT\n");
 		exit(EXIT_FAILURE);
 	}
