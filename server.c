@@ -124,13 +124,15 @@ int main(int argc, char** argv) {
 		//stores path to requested file and gets file type
 		char *fileToOpen;
 		char *pathDupe = strdup(headerSplit[REQPATH]);
-		char *myFileToOpen = strdup(argv[pathPos]);
-		myFileToOpen = strcat(myFileToOpen, headerSplit[REQPATH]);
+		//char *myFileToOpen = strdup(argv[pathPos]);
+		char *webRootFile = strdup(argv[pathPos]);
+		//myFileToOpen = strcat(myFileToOpen, headerSplit[REQPATH]);
 		theRest = pathDupe;
-		fileToOpen = strcat(argv[pathPos], headerSplit[REQPATH]);
+		fileToOpen = strcat(webRootFile, pathDupe);
 		while ((token = strtok_r(theRest, ".", &theRest))) {
 			fileType = token;
 		}
+		printf("%s\n", fileToOpen);
 		struct stat st;
 		stat(fileToOpen, &st);
 
