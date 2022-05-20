@@ -33,7 +33,7 @@ struct data {
 void read_input(int *protocolPos, int *portPos, int *webRootPos, int argc, char **argv);
 void check_ipv(char **argv, int protocolPos);
 void *handle_connection(void *clientDataPtr);
-struct data createData(int n, int newsockfd, char *webRoot);
+struct data *createData(int n, int newsockfd, char *webRoot);
 
 int main(int argc, char** argv) {
 	// lines 39 to 118 are taken from practical 8 and changed for my use,
@@ -119,10 +119,10 @@ int main(int argc, char** argv) {
 		}
 
 		pthread_t thread;
-		struct data clientData;
+		struct data *clientData = malloc(sizeof(struct data));
 		clientData = createData(n, newsockfd, argv[webRootPos]);
 		struct data *psockfd = malloc(sizeof(struct data));
-		*psockfd = clientData;
+		*psockfd = *clientData;
 		pthread_create(&thread, NULL, handle_connection, (void *)psockfd);
 	}
 	close(sockfd);
@@ -166,12 +166,12 @@ void check_ipv(char **argv, int protocolPos) {
 	}
 }
 
-struct data createData(int n, int newsockfd, char *webRoot) {
+struct data *createData(int n, int newsockfd, char *webRoot) {
 	struct data *clientData = malloc(sizeof(struct data));
 	clientData->n = n;
 	clientData->newsockfd = newsockfd;
 	clientData->webRoot = strdup(webRoot);
-	return *clientData;
+	return clientData;
 }
 
 //function to read input from client side
