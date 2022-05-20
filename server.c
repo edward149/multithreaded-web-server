@@ -9,6 +9,7 @@
 #define OTHER_TYPE "Content-Type: application/octet-stream\r\n\r\n"
 #define SPLITHEADERS 3
 #define MULTITHREADED
+#define IMPLEMENTS_IPV6
 
 #include <netdb.h>
 #include <stdio.h>
