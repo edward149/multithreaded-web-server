@@ -1,4 +1,4 @@
-#define _POSIX_C_SOURCE 200112L
+#define _POSIX_C_SOURCE 200809L
 #define REQPATH 1
 #define FOUND "HTTP/1.0 200 OK\r\n"
 #define NOT_FOUND "HTTP/1.0 404 NOT FOUND\r\n"
