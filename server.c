@@ -35,6 +35,8 @@ void check_ipv(char **argv, int protocolPos);
 void *handle_connection(void *clientDataPtr);
 
 int main(int argc, char** argv) {
+	// lines 39 to 118 are taken from practical 8 and changed for my use,
+	// written by the University of Melbourne COMP30023 teaching staff
     int protocolPos, portPos, webRootPos;
 	protocolPos = portPos = webRootPos = 0;
 	int sockfd, newsockfd, re, s;
@@ -114,6 +116,7 @@ int main(int argc, char** argv) {
 			perror("accept");
 			exit(EXIT_FAILURE);
 		}
+
 		pthread_t thread;
 		struct data clientData;
 		clientData.n = n;
@@ -157,6 +160,7 @@ void read_input(int *protocolPos, int *portPos, int *webRootPos, int argc, char 
     }
 }
 
+//checks whether input is valid, only accepts 4 and 6
 void check_ipv(char **argv, int protocolPos) {
     if (strcmp(argv[protocolPos], "4") != 0 && strcmp(argv[protocolPos], "6") != 0) {
 		fprintf(stderr, "ERROR, BAD IPV\n");
@@ -164,6 +168,8 @@ void check_ipv(char **argv, int protocolPos) {
 	}
 }
 
+//function to read input from client side
+//returns a http response
 void *handle_connection(void *clientDataPtr) {
 	struct data *my_newsockfd = (struct data*)clientDataPtr;
 	// Read characters from the connection, then process
