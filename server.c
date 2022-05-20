@@ -179,11 +179,18 @@ struct data createData(int n, int newsockfd, char *webRoot) {
 void *handle_connection(void *clientDataPtr) {
 	struct data *my_newsockfd = (struct data*)clientDataPtr;
 	// Read characters from the connection, then process
+	my_newsockfd->n = 0;
+	char crlf2[] = "\r\n\r\n";
 	my_newsockfd->n = read(my_newsockfd->newsockfd, my_newsockfd->buffer, 2000); // n is number of characters read
 	if (my_newsockfd->n < 0) {
 		perror("read");
 		exit(EXIT_FAILURE);
 	}
+	//reads multi packet request
+	while (strcmp(&(my_newsockfd->buffer[my_newsockfd->n-4]), crlf2) != 0) {
+		my_newsockfd->n = my_newsockfd->n + read(my_newsockfd->newsockfd, my_newsockfd->buffer, 2000);
+	}
+
 	// Null-terminate string
 	my_newsockfd->buffer[my_newsockfd->n] = '\0';
 
