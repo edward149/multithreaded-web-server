@@ -121,8 +121,7 @@ int main(int argc, char** argv) {
 		pthread_t thread;
 		struct data *clientData = malloc(sizeof(struct data));
 		clientData = createData(n, newsockfd, argv[webRootPos]);
-		struct data *psockfd = malloc(sizeof(struct data));
-		*psockfd = *clientData;
+		struct data *psockfd = clientData;
 		pthread_create(&thread, NULL, handle_connection, (void *)psockfd);
 	}
 	close(sockfd);
