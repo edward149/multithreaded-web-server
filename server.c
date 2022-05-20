@@ -8,6 +8,7 @@
 #define JAVASCRIPT "Content-Type: text/javascript\r\n\r\n"
 #define OTHER_TYPE "Content-Type: application/octet-stream\r\n\r\n"
 #define SPLITHEADERS 3
+#define MULTITHREADED
 
 #include <netdb.h>
 #include <stdio.h>
@@ -31,7 +32,7 @@ int main(int argc, char** argv) {
 
 	int sockfd, newsockfd, n, re, s;
 	char buffer[2001];
-	struct addrinfo hints, *res;
+	struct addrinfo hints, *res, *rp;
 	struct sockaddr_storage client_addr;
 	socklen_t client_addr_size;
 
@@ -40,14 +41,17 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	if (strcmp(argv[protocolPos], "4") != 0) {
-		fprintf(stderr, "ERROR, BAD INPUT\n");
+	if (strcmp(argv[protocolPos], "4") != 0 && strcmp(argv[protocolPos], "6") != 0) {
+		fprintf(stderr, "ERROR, BAD IPV\n");
 		exit(EXIT_FAILURE);
 	}
 
 	// Create address we're going to listen on (with given port number)
 	memset(&hints, 0, sizeof hints);
-	hints.ai_family = AF_INET;       // IPv4
+	if (strcmp(argv[protocolPos], "4") == 0)
+		hints.ai_family = AF_INET;       // IPv4
+	else if (strcmp(argv[protocolPos], "6") == 0)
+		hints.ai_family = AF_INET6;       // IPv6		
 	hints.ai_socktype = SOCK_STREAM; // TCP
 	hints.ai_flags = AI_PASSIVE;     // for bind, listen, accept
 	// node (NULL means any interface), service (port), hints, res
@@ -58,10 +62,19 @@ int main(int argc, char** argv) {
 	}
 
 	// Create socket
-	sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-	if (sockfd < 0) {
-		perror("socket");
-		exit(EXIT_FAILURE);
+	if (hints.ai_family == AF_INET) {
+		sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+		if (sockfd < 0) {
+			perror("socket");
+			exit(EXIT_FAILURE);
+		}
+	} else if (hints.ai_family == AF_INET6) {
+		for (rp = res; rp!= NULL; rp = rp->ai_next) {
+			if (rp->ai_family == AF_INET6 && (sockfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol)) < 0 ) {
+				perror("socket");
+				exit(EXIT_FAILURE);
+			}
+		}
 	}
 
 	// Reuse port if possible
