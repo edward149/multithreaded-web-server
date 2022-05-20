@@ -5,3 +5,4 @@ server
 *.log
 *.json
 /www/*
+testserver.c
